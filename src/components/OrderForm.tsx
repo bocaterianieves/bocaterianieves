@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
 const orderSchema = z.object({
@@ -12,8 +13,6 @@ const orderSchema = z.object({
 });
 
 type OrderFormData = z.infer<typeof orderSchema>;
-
-const WEBHOOK_URL = "https://orderflowagency.app.n8n.cloud/webhook/c2ec1314-5b35-43a9-a5e3-99cb0efe90d6";
 
 export const OrderForm = () => {
   const [formData, setFormData] = useState<OrderFormData>({
@@ -52,19 +51,18 @@ export const OrderForm = () => {
     setIsLoading(true);
 
     try {
-      await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors",
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke("send-order", {
+        body: {
           nombre: result.data.nombre,
           correo: result.data.correo,
           pedido: result.data.pedido,
           timestamp: new Date().toISOString(),
-        }),
+        },
       });
+
+      if (error) {
+        throw error;
+      }
 
       toast({
         title: "¡Pedido enviado!",
