@@ -64,6 +64,10 @@ export const OrderForm = () => {
         throw error;
       }
 
+      if (!data?.success) {
+        throw new Error(data?.error || "El backend devolvió un error");
+      }
+
       toast({
         title: "¡Pedido enviado!",
         description: "Hemos recibido tu pedido. Te contactaremos pronto.",
