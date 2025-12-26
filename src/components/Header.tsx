@@ -25,7 +25,7 @@ export const Header = () => {
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="hidden sm:flex items-center gap-1">
               <Clock className="w-4 h-4 text-primary" />
-              <span>9:00 - 21:00</span>
+              <span>20:00 - 24:00</span>
             </div>
           </div>
         </div>
