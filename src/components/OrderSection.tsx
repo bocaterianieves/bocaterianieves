@@ -39,8 +39,8 @@ export const OrderSection = () => {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-1">Hecho con Amor</h3>
-                  <p className="text-sm text-muted-foreground">Cada bocadillo preparado con la pasión de siempre.</p>
+                  <h3 className="font-semibold text-foreground mb-1">Cómodo y rápido</h3>
+                  <p className="text-sm text-muted-foreground">Pide sin tener que esperar.</p>
                 </div>
               </div>
 
@@ -51,8 +51,8 @@ export const OrderSection = () => {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-1">Preparación Rápida</h3>
-                  <p className="text-sm text-muted-foreground">Tu pedido listo en minutos, sin perder la calidad artesanal.</p>
+                  <h3 className="font-semibold text-foreground mb-1"> Pedido listo</h3>
+                  <p className="text-sm text-muted-foreground">Te enviaremos un email cuando tu pedido esté listo.</p>
                 </div>
               </div>
             </div>
