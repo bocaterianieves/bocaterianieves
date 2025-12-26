@@ -5,11 +5,8 @@ export const Footer = () => {
         <div className="grid md:grid-cols-3 gap-12 mb-12">
           {/* Brand */}
           <div>
-            <h3 className="font-serif text-2xl font-bold text-primary-foreground mb-4">La Bocatería</h3>
-            <p className="text-primary-foreground/70 mb-4">
-              Desde 1995 preparando los mejores bocadillos artesanales de la ciudad. 
-              Tradición y sabor en cada mordisco.
-            </p>
+            <h3 className="font-serif text-2xl font-bold text-primary-foreground mb-4">Bocatería Nieves</h3>
+            <p className="text-primary-foreground/70 mb-4">En Bocatería Nieves, nos especializamos en los bocadillos pero también tenemos más variedad de comida como hamburguesas, perritos y patatas.</p>
           </div>
 
           {/* Contact */}
