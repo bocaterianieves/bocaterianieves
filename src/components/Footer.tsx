@@ -50,7 +50,7 @@ export const Footer = () => {
         </div>
 
         <div className="border-t border-primary-foreground/10 pt-8 text-center">
-          <p className="text-primary-foreground/50 text-sm">© 2024 Bocatería Nieves. Todos los derechos reservados.</p>
+          <p className="text-primary-foreground/50 text-sm">© 2025 Bocatería Nieves. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>;

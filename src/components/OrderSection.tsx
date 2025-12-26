@@ -1,8 +1,6 @@
 import { OrderForm } from "./OrderForm";
-
 export const OrderSection = () => {
-  return (
-    <section id="pedido" className="py-24 bg-background">
+  return <section id="pedido" className="py-24 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 animate-slide-up">
@@ -19,7 +17,9 @@ export const OrderSection = () => {
 
           <div className="grid md:grid-cols-2 gap-12 items-start">
             {/* Features */}
-            <div className="space-y-6" style={{ animationDelay: '0.2s' }}>
+            <div className="space-y-6" style={{
+            animationDelay: '0.2s'
+          }}>
               <div className="flex items-start gap-4 p-4 rounded-xl bg-card shadow-soft">
                 <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-warm flex items-center justify-center">
                   <svg className="w-6 h-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -27,8 +27,8 @@ export const OrderSection = () => {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground mb-1">Ingredientes Frescos</h3>
-                  <p className="text-sm text-muted-foreground">Productos locales de la mejor calidad, seleccionados cada día.</p>
+                  <h3 className="font-semibold text-foreground mb-1">Rellena tu pedido</h3>
+                  <p className="text-sm text-muted-foreground">Pide directamente por el formulario.</p>
                 </div>
               </div>
 
@@ -64,6 +64,5 @@ export const OrderSection = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
