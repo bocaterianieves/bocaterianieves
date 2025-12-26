@@ -35,24 +35,24 @@ export const OrderSection = () => {
               <div className="flex items-start gap-4 p-4 rounded-xl bg-card shadow-soft">
                 <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-warm flex items-center justify-center">
                   <svg className="w-6 h-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground mb-1">Preparación Rápida</h3>
-                  <p className="text-sm text-muted-foreground">Tu pedido listo en minutos, sin perder la calidad artesanal.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-card shadow-soft">
-                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-warm flex items-center justify-center">
-                  <svg className="w-6 h-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground mb-1">Hecho con Amor</h3>
                   <p className="text-sm text-muted-foreground">Cada bocadillo preparado con la pasión de siempre.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-card shadow-soft">
+                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-gradient-warm flex items-center justify-center">
+                  <svg className="w-6 h-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">Preparación Rápida</h3>
+                  <p className="text-sm text-muted-foreground">Tu pedido listo en minutos, sin perder la calidad artesanal.</p>
                 </div>
               </div>
             </div>
