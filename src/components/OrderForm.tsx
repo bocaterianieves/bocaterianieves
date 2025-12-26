@@ -1,25 +1,43 @@
 import { useState } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 
 const orderSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(100, "El nombre es demasiado largo"),
   correo: z.string().trim().email("Por favor, introduce un correo válido").max(255, "El correo es demasiado largo"),
   pedido: z.string().trim().min(1, "El pedido es obligatorio").max(1000, "El pedido es demasiado largo"),
+  fechaRecogida: z.date({ required_error: "La fecha de recogida es obligatoria" }),
+  horaRecogida: z.string().min(1, "La hora de recogida es obligatoria"),
 });
 
 type OrderFormData = z.infer<typeof orderSchema>;
 
+const horasDisponibles = [
+  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+  "12:00", "12:30", "13:00", "13:30", "14:00", "14:30",
+  "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+  "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
+];
+
 export const OrderForm = () => {
-  const [formData, setFormData] = useState<OrderFormData>({
+  const [formData, setFormData] = useState<Partial<OrderFormData>>({
     nombre: "",
     correo: "",
     pedido: "",
+    horaRecogida: "",
   });
+  const [fechaRecogida, setFechaRecogida] = useState<Date | undefined>();
   const [errors, setErrors] = useState<Partial<Record<keyof OrderFormData, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -36,7 +54,12 @@ export const OrderForm = () => {
     e.preventDefault();
     setErrors({});
 
-    const result = orderSchema.safeParse(formData);
+    const dataToValidate = {
+      ...formData,
+      fechaRecogida,
+    };
+
+    const result = orderSchema.safeParse(dataToValidate);
     
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof OrderFormData, string>> = {};
@@ -56,6 +79,8 @@ export const OrderForm = () => {
           nombre: result.data.nombre,
           correo: result.data.correo,
           pedido: result.data.pedido,
+          fechaRecogida: format(result.data.fechaRecogida, "yyyy-MM-dd"),
+          horaRecogida: result.data.horaRecogida,
           timestamp: new Date().toISOString(),
         },
       });
@@ -73,7 +98,8 @@ export const OrderForm = () => {
         description: "Hemos recibido tu pedido. Te contactaremos pronto.",
       });
 
-      setFormData({ nombre: "", correo: "", pedido: "" });
+      setFormData({ nombre: "", correo: "", pedido: "", horaRecogida: "" });
+      setFechaRecogida(undefined);
     } catch (error) {
       console.error("Error enviando el pedido:", error);
       toast({
@@ -145,6 +171,76 @@ export const OrderForm = () => {
             {errors.pedido}
           </p>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-foreground">
+            Fecha de recogida
+          </label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !fechaRecogida && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {fechaRecogida ? format(fechaRecogida, "PPP", { locale: es }) : <span>Selecciona fecha</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={fechaRecogida}
+                onSelect={(date) => {
+                  setFechaRecogida(date);
+                  if (errors.fechaRecogida) {
+                    setErrors((prev) => ({ ...prev, fechaRecogida: undefined }));
+                  }
+                }}
+                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                initialFocus
+                className="p-3 pointer-events-auto"
+                locale={es}
+              />
+            </PopoverContent>
+          </Popover>
+          {errors.fechaRecogida && (
+            <p className="text-sm text-destructive">{errors.fechaRecogida}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-foreground">
+            Hora de recogida
+          </label>
+          <Select
+            value={formData.horaRecogida}
+            onValueChange={(value) => {
+              setFormData((prev) => ({ ...prev, horaRecogida: value }));
+              if (errors.horaRecogida) {
+                setErrors((prev) => ({ ...prev, horaRecogida: undefined }));
+              }
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecciona hora" />
+            </SelectTrigger>
+            <SelectContent>
+              {horasDisponibles.map((hora) => (
+                <SelectItem key={hora} value={hora}>
+                  {hora}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.horaRecogida && (
+            <p className="text-sm text-destructive">{errors.horaRecogida}</p>
+          )}
+        </div>
       </div>
 
       <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
