@@ -1,15 +1,13 @@
 import { Sandwich, Clock, MapPin } from "lucide-react";
-
 export const Header = () => {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
+  return <header className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-gradient-warm p-2 rounded-xl">
               <Sandwich className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="font-serif text-2xl font-bold text-foreground">La Bocatería</span>
+            <span className="font-serif text-2xl font-bold text-foreground">Bocatería Nieves</span>
           </div>
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
@@ -32,6 +30,5 @@ export const Header = () => {
           </div>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
