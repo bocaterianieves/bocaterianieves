@@ -14,9 +14,8 @@ export const Hero = () => {
             Bocadillos Artesanales
           </span>
           
-          <h1 className="font-serif text-5xl md:text-7xl font-bold text-primary-foreground mb-6 leading-tight">Bocatería
-Enamora<br />
-            <span className="text-gradient">Enamora</span>
+          <h1 className="font-serif text-5xl md:text-7xl font-bold text-primary-foreground mb-6 leading-tight">
+            Bocatería <span className="text-primary">Nieves</span>
           </h1>
           
           <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 max-w-xl mx-auto">
