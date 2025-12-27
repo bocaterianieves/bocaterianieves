@@ -23,6 +23,8 @@ Deno.serve(async (req) => {
       nombre: body.nombre,
       correo: body.correo,
       pedido: body.pedido,
+      fechaRecogida: body.fechaRecogida,
+      horaRecogida: body.horaRecogida,
       timestamp: body.timestamp || new Date().toISOString(),
     };
 
@@ -52,6 +54,8 @@ Deno.serve(async (req) => {
         nombre: String(payload.nombre ?? ""),
         correo: String(payload.correo ?? ""),
         pedido: String(payload.pedido ?? ""),
+        fechaRecogida: String(payload.fechaRecogida ?? ""),
+        horaRecogida: String(payload.horaRecogida ?? ""),
         timestamp: String(payload.timestamp ?? ""),
       }).toString();
 
