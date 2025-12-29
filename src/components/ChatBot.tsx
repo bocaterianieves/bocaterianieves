@@ -7,6 +7,8 @@ type Message = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
+const cleanMarkdown = (text: string) => text.replace(/\*+/g, "");
+
 const QUICK_ACTIONS = [
   { label: "Ver horarios", icon: Clock, message: "¿Cuál es vuestro horario de apertura?" },
   { label: "Ver menú", icon: UtensilsCrossed, message: "¿Qué tenéis en el menú?" },
@@ -77,9 +79,10 @@ export const ChatBot = () => {
             const delta = parsed.choices?.[0]?.delta?.content;
             if (delta) {
               assistantContent += delta;
+              const cleanedContent = cleanMarkdown(assistantContent);
               setMessages(prev => 
                 prev.map((m, i) => 
-                  i === prev.length - 1 ? { ...m, content: assistantContent } : m
+                  i === prev.length - 1 ? { ...m, content: cleanedContent } : m
                 )
               );
             }
