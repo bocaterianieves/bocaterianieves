@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
@@ -17,6 +18,7 @@ const orderSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(100, "El nombre es demasiado largo"),
   correo: z.string().trim().email("Por favor, introduce un correo válido").max(255, "El correo es demasiado largo"),
   pedido: z.string().trim().min(1, "El pedido es obligatorio").max(1000, "El pedido es demasiado largo"),
+  tipoPedido: z.enum(["comer", "llevar"], { required_error: "Selecciona una opción" }),
   fechaRecogida: z.date({ required_error: "La fecha de recogida es obligatoria" }),
   horaRecogida: z.string().min(1, "La hora de recogida es obligatoria"),
 });
@@ -35,6 +37,7 @@ export const OrderForm = () => {
     nombre: "",
     correo: "",
     pedido: "",
+    tipoPedido: undefined,
     horaRecogida: "",
   });
   const [fechaRecogida, setFechaRecogida] = useState<Date | undefined>();
@@ -79,6 +82,7 @@ export const OrderForm = () => {
           nombre: result.data.nombre,
           correo: result.data.correo,
           pedido: result.data.pedido,
+          tipoPedido: result.data.tipoPedido,
           fechaRecogida: format(result.data.fechaRecogida, "yyyy-MM-dd"),
           horaRecogida: result.data.horaRecogida,
           timestamp: new Date().toISOString(),
@@ -98,7 +102,7 @@ export const OrderForm = () => {
         description: "Hemos recibido tu pedido. Te contactaremos pronto.",
       });
 
-      setFormData({ nombre: "", correo: "", pedido: "", horaRecogida: "" });
+      setFormData({ nombre: "", correo: "", pedido: "", tipoPedido: undefined, horaRecogida: "" });
       setFechaRecogida(undefined);
     } catch (error) {
       console.error("Error enviando el pedido:", error);
@@ -170,6 +174,38 @@ export const OrderForm = () => {
           <p id="pedido-error" className="text-sm text-destructive">
             {errors.pedido}
           </p>
+        )}
+      </div>
+
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-foreground">
+          ¿Para comer o para llevar?
+        </label>
+        <RadioGroup
+          value={formData.tipoPedido}
+          onValueChange={(value: "comer" | "llevar") => {
+            setFormData((prev) => ({ ...prev, tipoPedido: value }));
+            if (errors.tipoPedido) {
+              setErrors((prev) => ({ ...prev, tipoPedido: undefined }));
+            }
+          }}
+          className="flex gap-6"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="comer" id="comer" />
+            <label htmlFor="comer" className="text-sm font-medium cursor-pointer">
+              Para comer aquí
+            </label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="llevar" id="llevar" />
+            <label htmlFor="llevar" className="text-sm font-medium cursor-pointer">
+              Para llevar
+            </label>
+          </div>
+        </RadioGroup>
+        {errors.tipoPedido && (
+          <p className="text-sm text-destructive">{errors.tipoPedido}</p>
         )}
       </div>
 
