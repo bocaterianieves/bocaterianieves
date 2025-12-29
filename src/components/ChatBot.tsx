@@ -1,11 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Loader2, Clock, UtensilsCrossed } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type Message = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+
+const QUICK_ACTIONS = [
+  { label: "Ver horarios", icon: Clock, message: "¿Cuál es vuestro horario de apertura?" },
+  { label: "Ver menú", icon: UtensilsCrossed, message: "¿Qué tenéis en el menú?" },
+];
 
 export const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,19 +19,22 @@ export const ChatBot = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  const sendMessage = async (messageText?: string) => {
+    const text = messageText || input.trim();
+    if (!text || isLoading) return;
 
-    const userMsg: Message = { role: "user", content: input.trim() };
+    const userMsg: Message = { role: "user", content: text };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
+    setShowQuickActions(false);
 
     let assistantContent = "";
 
@@ -91,6 +99,10 @@ export const ChatBot = () => {
     }
   };
 
+  const handleQuickAction = (message: string) => {
+    sendMessage(message);
+  };
+
   return (
     <>
       {/* Floating button */}
@@ -136,6 +148,23 @@ export const ChatBot = () => {
                 </div>
               </div>
             ))}
+            
+            {/* Quick actions */}
+            {showQuickActions && messages.length === 1 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {QUICK_ACTIONS.map((action) => (
+                  <button
+                    key={action.label}
+                    onClick={() => handleQuickAction(action.message)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors"
+                  >
+                    <action.icon className="w-4 h-4" />
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            
             <div ref={messagesEndRef} />
           </div>
 
@@ -150,7 +179,7 @@ export const ChatBot = () => {
               disabled={isLoading}
             />
             <Button
-              onClick={sendMessage}
+              onClick={() => sendMessage()}
               disabled={isLoading || !input.trim()}
               size="icon"
               className="shrink-0"
