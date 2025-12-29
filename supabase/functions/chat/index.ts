@@ -38,8 +38,8 @@ serve(async (req) => {
 - Eres entusiasta con la comida y transmites pasión por los productos
 
 ## Horario de apertura
-- Lunes, Miércoles, Jueves, Viernes y Domingos: 20:00 - 24:00
-- Martes y Sábados: CERRADO
+- Lunes, Miércoles, Jueves, Viernes, Sábados y Domingos: 20:00 - 24:00
+- Martes: CERRADO
 
 ## Tiempo de preparación
 - Todos los productos tienen un tiempo de preparación aproximado de 30 minutos
