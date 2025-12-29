@@ -148,25 +148,24 @@ export const ChatBot = () => {
                 </div>
               </div>
             ))}
-            
-            {/* Quick actions */}
-            {showQuickActions && messages.length === 1 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {QUICK_ACTIONS.map((action) => (
-                  <button
-                    key={action.label}
-                    onClick={() => handleQuickAction(action.message)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors"
-                  >
-                    <action.icon className="w-4 h-4" />
-                    {action.label}
-                  </button>
-                ))}
-              </div>
-            )}
-            
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Quick actions */}
+          {showQuickActions && (
+            <div className="flex flex-wrap gap-2 px-3 py-2 border-t border-border">
+              {QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action.label}
+                  onClick={() => handleQuickAction(action.message)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors"
+                >
+                  <action.icon className="w-4 h-4" />
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Input */}
           <div className="p-3 border-t border-border flex gap-2">
