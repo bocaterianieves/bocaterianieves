@@ -120,7 +120,7 @@ export const OrderForm = () => {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <label htmlFor="nombre" className="block text-sm font-medium text-foreground">
-          Nombre
+          Nombre <span className="text-orange-500">*</span>
         </label>
         <Input
           id="nombre"
@@ -140,7 +140,7 @@ export const OrderForm = () => {
 
       <div className="space-y-2">
         <label htmlFor="correo" className="block text-sm font-medium text-foreground">
-          Correo electrónico
+          Correo electrónico <span className="text-orange-500">*</span>
         </label>
         <Input
           id="correo"
@@ -160,7 +160,7 @@ export const OrderForm = () => {
 
       <div className="space-y-2">
         <label htmlFor="pedido" className="block text-sm font-medium text-foreground">
-          Tu pedido
+          Tu pedido <span className="text-orange-500">*</span>
         </label>
         <Textarea
           id="pedido"
@@ -179,7 +179,7 @@ export const OrderForm = () => {
 
       <div className="space-y-3">
         <label className="block text-sm font-medium text-foreground">
-          ¿Para comer o para llevar?
+          ¿Para comer o para llevar? <span className="text-orange-500">*</span>
         </label>
         <RadioGroup
           value={formData.tipoPedido}
@@ -212,7 +212,7 @@ export const OrderForm = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-foreground">
-            Fecha de recogida
+            Fecha de recogida <span className="text-orange-500">*</span>
           </label>
           <Popover>
             <PopoverTrigger asChild>
@@ -251,7 +251,7 @@ export const OrderForm = () => {
 
         <div className="space-y-2">
           <label className="block text-sm font-medium text-foreground">
-            Hora de recogida
+            Hora de recogida <span className="text-orange-500">*</span>
           </label>
           <Select
             value={formData.horaRecogida}
