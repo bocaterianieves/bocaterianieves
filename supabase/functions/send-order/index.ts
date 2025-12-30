@@ -19,11 +19,14 @@ Deno.serve(async (req) => {
 
     console.log("Received order data:", JSON.stringify(body));
 
+    // Transformar tipoPedido al formato deseado
+    const tipoPedidoFormateado = body.tipoPedido === "comer" ? "Comer Aquí" : "Para Llevar";
+
     const payload = {
       nombre: body.nombre,
       correo: body.correo,
       pedido: body.pedido,
-      tipoPedido: body.tipoPedido,
+      tipoPedido: tipoPedidoFormateado,
       fechaRecogida: body.fechaRecogida,
       horaRecogida: body.horaRecogida,
       timestamp: body.timestamp || new Date().toISOString(),
