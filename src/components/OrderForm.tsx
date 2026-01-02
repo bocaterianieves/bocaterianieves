@@ -4,8 +4,8 @@ import { es } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
+import { OrderAutocomplete } from "@/components/OrderAutocomplete";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -162,13 +162,17 @@ export const OrderForm = () => {
         <label htmlFor="pedido" className="block text-sm font-medium text-foreground">
           Tu pedido <span className="text-orange-500">*</span>
         </label>
-        <Textarea
+        <OrderAutocomplete
           id="pedido"
           name="pedido"
-          placeholder="Describe tu bocadillo perfecto... (ej: Bocadillo de jamón serrano con tomate y aceite)"
-          value={formData.pedido}
-          onChange={handleChange}
-          aria-describedby={errors.pedido ? "pedido-error" : undefined}
+          placeholder="Escribe tu pedido... (ej: SERRANITO sin tomate)"
+          value={formData.pedido || ""}
+          onChange={(value) => {
+            setFormData((prev) => ({ ...prev, pedido: value }));
+            if (errors.pedido) {
+              setErrors((prev) => ({ ...prev, pedido: undefined }));
+            }
+          }}
         />
         {errors.pedido && (
           <p id="pedido-error" className="text-sm text-destructive">
