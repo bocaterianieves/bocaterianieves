@@ -165,7 +165,7 @@ export const OrderForm = () => {
         <OrderAutocomplete
           id="pedido"
           name="pedido"
-          placeholder="Escribe tu pedido... (ej: SERRANITO sin tomate)"
+          placeholder="Escribe tu pedido..."
           value={formData.pedido || ""}
           onChange={(value) => {
             setFormData((prev) => ({ ...prev, pedido: value }));
