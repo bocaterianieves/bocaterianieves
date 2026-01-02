@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -9,10 +9,12 @@ import { OrderAutocomplete } from "@/components/OrderAutocomplete";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
+import { menuData } from "@/data/menuData";
 
 const orderSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(100, "El nombre es demasiado largo"),
@@ -44,6 +46,28 @@ export const OrderForm = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof OrderFormData, string>>>({});
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Calcular el total del pedido
+  const total = useMemo(() => {
+    if (!formData.pedido) return 0;
+    
+    let totalPrice = 0;
+    const pedidoUpper = formData.pedido.toUpperCase();
+    
+    menuData.forEach((item) => {
+      const itemNameUpper = item.name.toUpperCase();
+      // Contar cuántas veces aparece el producto en el pedido
+      const regex = new RegExp(itemNameUpper.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      const matches = pedidoUpper.match(regex);
+      if (matches) {
+        // Convertir precio de formato "5,50€" a número
+        const priceNum = parseFloat(item.price.replace('€', '').replace(',', '.'));
+        totalPrice += priceNum * matches.length;
+      }
+    });
+    
+    return totalPrice;
+  }, [formData.pedido]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -281,6 +305,18 @@ export const OrderForm = () => {
             <p className="text-sm text-destructive">{errors.horaRecogida}</p>
           )}
         </div>
+      </div>
+
+      {/* Total del pedido */}
+      <div className="space-y-4">
+        <Separator className="bg-muted-foreground/30" />
+        <div className="flex justify-between items-center py-2">
+          <span className="text-lg font-semibold text-foreground">TOTAL</span>
+          <span className="text-2xl font-bold text-primary">
+            {total.toFixed(2).replace('.', ',')}€
+          </span>
+        </div>
+        <Separator className="bg-muted-foreground/30" />
       </div>
 
       <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
