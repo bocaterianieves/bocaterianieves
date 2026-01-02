@@ -43,18 +43,22 @@ export const OrderAutocomplete = ({
   useEffect(() => {
     const lowerValue = value.toLowerCase();
     
+    // Get the last segment after "," or " y "
+    const segments = lowerValue.split(/,\s*|\s+y\s+/);
+    const lastSegment = segments[segments.length - 1].trim();
+    
     // Check if user is typing "sin" to exclude ingredients
-    const sinMatch = lowerValue.match(/sin\s*(\w*)$/i);
+    const sinMatch = lastSegment.match(/^sin\s*(\w*)$/i);
     
     if (sinMatch) {
-      // User is typing "sin..." - show ingredients from selected product or all
+      // User is typing "sin..." - show ingredients from selected product
       const searchTerm = sinMatch[1].toLowerCase();
       let ingredients: string[] = [];
       
       if (selectedProduct) {
         ingredients = extractIngredients(selectedProduct.description);
       } else {
-        // Try to detect product from the value
+        // Try to detect product from the full value
         const detectedProduct = menuData.find(item => 
           lowerValue.includes(item.name.toLowerCase())
         );
@@ -65,17 +69,16 @@ export const OrderAutocomplete = ({
       }
       
       const filtered = ingredients
-        .filter(ing => ing.includes(searchTerm))
+        .filter(ing => ing.startsWith(searchTerm))
         .map(ing => ({ label: ing, type: "ingredient" as const }));
       
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
-    } else if (lowerValue.length > 0) {
-      // Normal product search
+    } else if (lastSegment.length > 0) {
+      // Normal product search - only match from the beginning
       const filtered = menuData
         .filter(item => 
-          item.name.toLowerCase().includes(lowerValue) ||
-          item.category.toLowerCase().includes(lowerValue)
+          item.name.toLowerCase().startsWith(lastSegment)
         )
         .slice(0, 8)
         .map(item => ({ 
@@ -93,13 +96,19 @@ export const OrderAutocomplete = ({
   }, [value, selectedProduct]);
 
   const handleSelect = (suggestion: { label: string; type: "product" | "ingredient"; item?: MenuItem }) => {
+    // Get the part before the last segment
+    const segments = value.split(/,\s*|\s+y\s+/);
+    const prefix = segments.slice(0, -1).join(", ");
+    const separator = prefix ? ", " : "";
+    
     if (suggestion.type === "product" && suggestion.item) {
-      onChange(suggestion.item.name);
+      onChange(prefix + separator + suggestion.item.name);
       setSelectedProduct(suggestion.item);
     } else if (suggestion.type === "ingredient") {
-      // Add the ingredient to the "sin" part
-      const newValue = value.replace(/sin\s*\w*$/i, `sin ${suggestion.label}`);
-      onChange(newValue);
+      // Replace "sin X" with the full ingredient
+      const lastSegment = segments[segments.length - 1];
+      const newLastSegment = lastSegment.replace(/sin\s*\w*$/i, `sin ${suggestion.label}`);
+      onChange(prefix + separator + newLastSegment);
     }
     setShowSuggestions(false);
     inputRef.current?.focus();
