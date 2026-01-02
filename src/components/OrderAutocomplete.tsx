@@ -43,33 +43,35 @@ export const OrderAutocomplete = ({
   useEffect(() => {
     const lowerValue = value.toLowerCase();
     
-    // Get the last segment after "," or " y "
+    // Get the last segment after "," or " y " (for multiple products)
     const segments = lowerValue.split(/,\s*|\s+y\s+/);
     const lastSegment = segments[segments.length - 1].trim();
     
-    // Check if user is typing "sin" to exclude ingredients
-    const sinMatch = lastSegment.match(/^sin\s*(\w*)$/i);
+    // Check if user is typing "sin" anywhere in the last segment
+    const sinMatch = lastSegment.match(/sin\s*(\w*)$/i);
     
     if (sinMatch) {
-      // User is typing "sin..." - show ingredients from selected product
+      // User is typing "sin..." - show ingredients from the product in this segment
       const searchTerm = sinMatch[1].toLowerCase();
-      let ingredients: string[] = [];
       
-      if (selectedProduct) {
-        ingredients = extractIngredients(selectedProduct.description);
-      } else {
-        // Try to detect product from the full value
-        const detectedProduct = menuData.find(item => 
-          lowerValue.includes(item.name.toLowerCase())
-        );
-        if (detectedProduct) {
-          ingredients = extractIngredients(detectedProduct.description);
+      // Find the product mentioned before "sin" in this segment
+      const beforeSin = lastSegment.replace(/sin\s*\w*$/i, "").trim();
+      const detectedProduct = menuData.find(item => 
+        beforeSin.includes(item.name.toLowerCase())
+      );
+      
+      let ingredients: string[] = [];
+      if (detectedProduct) {
+        ingredients = extractIngredients(detectedProduct.description);
+        if (detectedProduct !== selectedProduct) {
           setSelectedProduct(detectedProduct);
         }
+      } else if (selectedProduct) {
+        ingredients = extractIngredients(selectedProduct.description);
       }
       
       const filtered = ingredients
-        .filter(ing => ing.startsWith(searchTerm))
+        .filter(ing => searchTerm === "" || ing.startsWith(searchTerm))
         .map(ing => ({ label: ing, type: "ingredient" as const }));
       
       setSuggestions(filtered);
