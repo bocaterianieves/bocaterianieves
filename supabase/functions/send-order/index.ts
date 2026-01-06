@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const N8N_WEBHOOK_URL = "https://orderflowagency.app.n8n.cloud/webhook/c2ec1314-5b35-43a9-a5e3-99cb0efe90d6";
+const N8N_WEBHOOK_URL = "https://pruebasorderflow.app.n8n.cloud/webhook/c2ec1314-5b35-43a9-a5e3-99cb0efe90d6";
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
