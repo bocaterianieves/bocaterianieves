@@ -22,60 +22,28 @@ Deno.serve(async (req) => {
     // Transformar tipoPedido al formato deseado
     const tipoPedidoFormateado = body.tipoPedido === "comer" ? "Comer Aquí" : "Para Llevar";
 
-    const payload = {
-      nombre: body.nombre,
-      correo: body.correo,
-      pedido: body.pedido,
-      tipoPedido: tipoPedidoFormateado,
-      fechaRecogida: body.fechaRecogida,
-      horaRecogida: body.horaRecogida,
-      timestamp: body.timestamp || new Date().toISOString(),
-    };
+    // Build URL with query parameters (n8n workflow expects data in query params)
+    const url = new URL(N8N_WEBHOOK_URL);
+    url.searchParams.set("nombre", body.nombre || "");
+    url.searchParams.set("correo", body.correo || "");
+    url.searchParams.set("pedido", body.pedido || "");
+    url.searchParams.set("tipoPedido", tipoPedidoFormateado);
+    url.searchParams.set("fechaRecogida", body.fechaRecogida || "");
+    url.searchParams.set("horaRecogida", body.horaRecogida || "");
 
-    // 1) Try POST (recommended)
-    let response = await fetch(N8N_WEBHOOK_URL, {
+    console.log("Sending order to n8n:", url.toString());
+
+    const response = await fetch(url.toString(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload),
     });
 
-    let responseText = await response.text();
+    const responseText = await response.text();
 
     console.log("n8n webhook response status:", response.status);
     console.log("n8n webhook response:", responseText);
-
-    // 2) If n8n webhook is configured for GET-only, retry as GET.
-    if (
-      response.status === 404 &&
-      responseText.includes("not registered for POST")
-    ) {
-      console.log("Webhook seems GET-only; retrying with GET query params");
-
-      const url = new URL(N8N_WEBHOOK_URL);
-      url.search = new URLSearchParams({
-        nombre: String(payload.nombre ?? ""),
-        correo: String(payload.correo ?? ""),
-        pedido: String(payload.pedido ?? ""),
-        tipoPedido: String(payload.tipoPedido ?? ""),
-        fechaRecogida: String(payload.fechaRecogida ?? ""),
-        horaRecogida: String(payload.horaRecogida ?? ""),
-        timestamp: String(payload.timestamp ?? ""),
-      }).toString();
-
-      response = await fetch(url.toString(), {
-        method: "GET",
-        headers: {
-          "Accept": "application/json",
-        },
-      });
-
-      responseText = await response.text();
-
-      console.log("n8n webhook (GET retry) status:", response.status);
-      console.log("n8n webhook (GET retry) response:", responseText);
-    }
 
     if (!response.ok) {
       return new Response(
