@@ -296,7 +296,7 @@ export const OrderForm = () => {
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecciona hora" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent side="bottom" align="start" className="bg-background z-50">
               {horasDisponibles.map((hora) => (
                 <SelectItem key={hora} value={hora}>
                   {hora}
