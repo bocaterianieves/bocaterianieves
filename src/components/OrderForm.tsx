@@ -28,7 +28,10 @@ const orderSchema = z.object({
 type OrderFormData = z.infer<typeof orderSchema>;
 
 const horasDisponibles = [
-  "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"
+  "20:00", "20:15", "20:30", "20:45", 
+  "21:00", "21:15", "21:30", "21:45", 
+  "22:00", "22:15", "22:30", "22:45", 
+  "23:00", "23:15", "23:30", "23:45"
 ];
 
 // Deshabilitar martes (día 2 en JavaScript, donde 0 = domingo)
