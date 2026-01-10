@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
     url.searchParams.set("tipoPedido", tipoPedidoFormateado);
     url.searchParams.set("fechaRecogida", body.fechaRecogida || "");
     url.searchParams.set("horaRecogida", body.horaRecogida || "");
+    url.searchParams.set("total", body.total || "0,00€");
 
     console.log("Sending order to n8n:", url.toString());
 
