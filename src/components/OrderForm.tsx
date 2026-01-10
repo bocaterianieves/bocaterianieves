@@ -109,6 +109,7 @@ export const OrderForm = () => {
           tipoPedido: result.data.tipoPedido,
           fechaRecogida: format(result.data.fechaRecogida, "yyyy-MM-dd"),
           horaRecogida: result.data.horaRecogida,
+          total: total.toFixed(2).replace('.', ',') + "€",
           timestamp: new Date().toISOString(),
         },
       });
