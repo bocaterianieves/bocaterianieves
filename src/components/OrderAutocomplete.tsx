@@ -20,6 +20,7 @@ export const OrderAutocomplete = ({
   name,
 }: OrderAutocompleteProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<{ label: string; type: "product" | "ingredient"; item?: MenuItem }[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -34,6 +35,7 @@ export const OrderAutocomplete = ({
         !inputRef.current.contains(e.target as Node)
       ) {
         setShowSuggestions(false);
+        setIsFocused(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -75,7 +77,7 @@ export const OrderAutocomplete = ({
         .map(ing => ({ label: ing, type: "ingredient" as const }));
       
       setSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
+      setShowSuggestions(isFocused && filtered.length > 0);
     } else if (lastSegment.length > 0) {
       const words = lastSegment.split(/\s+/);
       const lastWord = words[words.length - 1];
@@ -100,12 +102,12 @@ export const OrderAutocomplete = ({
         }));
       
       setSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
+      setShowSuggestions(isFocused && filtered.length > 0);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [value, selectedProduct]);
+  }, [value, selectedProduct, isFocused]);
 
   const handleSelect = (suggestion: { label: string; type: "product" | "ingredient"; item?: MenuItem }) => {
     // Get the part before the last segment
@@ -142,7 +144,16 @@ export const OrderAutocomplete = ({
         name={name}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={() => value.length > 0 && setShowSuggestions(suggestions.length > 0)}
+        onFocus={() => {
+          setIsFocused(true);
+          if (value.length > 0 && suggestions.length > 0) {
+            setShowSuggestions(true);
+          }
+        }}
+        onBlur={() => {
+          // Delay to allow click on suggestions
+          setTimeout(() => setIsFocused(false), 150);
+        }}
         placeholder={placeholder}
         className={cn(
           "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
