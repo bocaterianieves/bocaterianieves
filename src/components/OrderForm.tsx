@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { OrderAutocomplete } from "@/components/OrderAutocomplete";
+import { OrderProductList } from "@/components/OrderProductList";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -201,6 +202,15 @@ export const OrderForm = () => {
           placeholder="Escribe tu pedido..."
           value={formData.pedido || ""}
           onChange={(value) => {
+            setFormData((prev) => ({ ...prev, pedido: value }));
+            if (errors.pedido) {
+              setErrors((prev) => ({ ...prev, pedido: undefined }));
+            }
+          }}
+        />
+        <OrderProductList
+          pedido={formData.pedido || ""}
+          onUpdatePedido={(value) => {
             setFormData((prev) => ({ ...prev, pedido: value }));
             if (errors.pedido) {
               setErrors((prev) => ({ ...prev, pedido: undefined }));
