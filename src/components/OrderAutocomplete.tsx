@@ -77,15 +77,21 @@ export const OrderAutocomplete = ({
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
     } else if (lastSegment.length > 0) {
-      // Search for products - match if any word contains the product name
+      // Search for products - match by:
+      // 1. Product name starts with any word in the input
+      // 2. Any word in the input is contained in the product name
       const words = lastSegment.split(/\s+/);
       const lastWord = words[words.length - 1];
       
       const filtered = menuData
-        .filter(item => 
-          item.name.toLowerCase().includes(lastWord) ||
-          lastWord.includes(item.name.toLowerCase().substring(0, Math.min(3, item.name.length)))
-        )
+        .filter(item => {
+          const itemNameLower = item.name.toLowerCase();
+          // Match if product name starts with last word (e.g., "ham" -> "HAMBURGUESA")
+          // Or if last word contains part of product name
+          return itemNameLower.startsWith(lastWord) ||
+            lastWord.includes(itemNameLower.substring(0, Math.min(3, itemNameLower.length))) ||
+            itemNameLower.includes(lastWord);
+        })
         .slice(0, 8)
         .map(item => ({ 
           label: `${item.name} - ${item.price}`, 
