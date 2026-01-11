@@ -56,22 +56,30 @@ export const OrderForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Calcular el total del pedido
+  // Calcular el total del pedido (soporta formato "xN PRODUCTO")
   const total = useMemo(() => {
     if (!formData.pedido) return 0;
     
     let totalPrice = 0;
-    const pedidoUpper = formData.pedido.toUpperCase();
+    const segments = formData.pedido.split(/,\s*/);
     
-    menuData.forEach((item) => {
-      const itemNameUpper = item.name.toUpperCase();
-      // Contar cuántas veces aparece el producto en el pedido
-      const regex = new RegExp(itemNameUpper.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-      const matches = pedidoUpper.match(regex);
-      if (matches) {
-        // Convertir precio de formato "5,50€" a número
-        const priceNum = parseFloat(item.price.replace('€', '').replace(',', '.'));
-        totalPrice += priceNum * matches.length;
+    segments.forEach((segment) => {
+      const trimmed = segment.trim();
+      if (!trimmed) return;
+      
+      // Buscar formato "xN PRODUCTO" o solo "PRODUCTO"
+      const quantityMatch = trimmed.match(/^x(\d+)\s+/i);
+      const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 1;
+      const productPart = quantityMatch ? trimmed.replace(/^x\d+\s+/i, '') : trimmed;
+      
+      // Buscar el producto en el menú
+      const foundItem = menuData.find(item => 
+        productPart.toUpperCase().includes(item.name.toUpperCase())
+      );
+      
+      if (foundItem) {
+        const priceNum = parseFloat(foundItem.price.replace('€', '').replace(',', '.'));
+        totalPrice += priceNum * quantity;
       }
     });
     
