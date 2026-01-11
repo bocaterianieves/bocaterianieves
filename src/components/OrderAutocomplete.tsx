@@ -77,10 +77,14 @@ export const OrderAutocomplete = ({
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
     } else if (lastSegment.length > 0) {
-      // Normal product search - only match from the beginning
+      // Search for products - match if any word contains the product name
+      const words = lastSegment.split(/\s+/);
+      const lastWord = words[words.length - 1];
+      
       const filtered = menuData
         .filter(item => 
-          item.name.toLowerCase().startsWith(lastSegment)
+          item.name.toLowerCase().includes(lastWord) ||
+          lastWord.includes(item.name.toLowerCase().substring(0, Math.min(3, item.name.length)))
         )
         .slice(0, 8)
         .map(item => ({ 
@@ -104,7 +108,15 @@ export const OrderAutocomplete = ({
     const separator = prefix ? ", " : "";
     
     if (suggestion.type === "product" && suggestion.item) {
-      onChange(prefix + separator + suggestion.item.name);
+      // Keep any quantity/prefix words before replacing with product name
+      const lastSegment = segments[segments.length - 1];
+      const words = lastSegment.trim().split(/\s+/);
+      // Keep words that look like quantities (numbers, "un", "una", "dos", etc.)
+      const quantityWords = words.filter(w => 
+        /^\d+$/.test(w) || ["un", "una", "uno", "dos", "tres", "cuatro", "cinco"].includes(w.toLowerCase())
+      );
+      const quantityPrefix = quantityWords.length > 0 ? quantityWords.join(" ") + " " : "";
+      onChange(prefix + separator + quantityPrefix + suggestion.item.name);
       setSelectedProduct(suggestion.item);
     } else if (suggestion.type === "ingredient") {
       // Replace "sin X" with the full ingredient

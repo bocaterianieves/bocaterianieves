@@ -16,10 +16,18 @@ import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { menuData } from "@/data/menuData";
 
+// Función para validar que el pedido contiene productos válidos del menú
+const validatePedidoProducts = (pedido: string): boolean => {
+  if (!pedido.trim()) return false;
+  const pedidoUpper = pedido.toUpperCase();
+  return menuData.some(item => pedidoUpper.includes(item.name.toUpperCase()));
+};
+
 const orderSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(100, "El nombre es demasiado largo"),
   correo: z.string().trim().email("Por favor, introduce un correo válido").max(255, "El correo es demasiado largo"),
-  pedido: z.string().trim().min(1, "El pedido es obligatorio").max(1000, "El pedido es demasiado largo"),
+  pedido: z.string().trim().min(1, "El pedido es obligatorio").max(1000, "El pedido es demasiado largo")
+    .refine(validatePedidoProducts, "Debes incluir al menos un producto del menú (escríbelo exactamente como aparece)"),
   tipoPedido: z.enum(["comer", "llevar"], { required_error: "Selecciona una opción" }),
   fechaRecogida: z.date({ required_error: "La fecha de recogida es obligatoria" }),
   horaRecogida: z.string().min(1, "La hora de recogida es obligatoria"),
