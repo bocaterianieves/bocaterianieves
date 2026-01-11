@@ -14,22 +14,37 @@ interface OrderProductListProps {
 }
 
 export const OrderProductList = ({ pedido, onUpdatePedido }: OrderProductListProps) => {
-  // Detectar productos y sus cantidades del texto del pedido
+  // Detectar productos y sus cantidades del texto del pedido (formato: x2 PRODUCTO)
   const detectedProducts = useMemo((): DetectedProduct[] => {
     if (!pedido.trim()) return [];
     
-    const pedidoUpper = pedido.toUpperCase();
     const products: DetectedProduct[] = [];
     
-    menuData.forEach((item) => {
-      const itemNameUpper = item.name.toUpperCase();
-      const regex = new RegExp(itemNameUpper.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-      const matches = pedidoUpper.match(regex);
-      if (matches) {
-        products.push({
-          item,
-          quantity: matches.length,
-        });
+    // Separar por comas
+    const segments = pedido.split(/,\s*/);
+    
+    segments.forEach((segment) => {
+      const trimmed = segment.trim();
+      if (!trimmed) return;
+      
+      // Buscar formato "xN PRODUCTO" o solo "PRODUCTO"
+      const quantityMatch = trimmed.match(/^x(\d+)\s+/i);
+      const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 1;
+      const productPart = quantityMatch ? trimmed.replace(/^x\d+\s+/i, '') : trimmed;
+      
+      // Buscar el producto en el menú
+      const foundItem = menuData.find(item => 
+        productPart.toUpperCase().includes(item.name.toUpperCase())
+      );
+      
+      if (foundItem) {
+        // Verificar si ya existe este producto
+        const existing = products.find(p => p.item.name === foundItem.name);
+        if (existing) {
+          existing.quantity += quantity;
+        } else {
+          products.push({ item: foundItem, quantity });
+        }
       }
     });
     
@@ -37,46 +52,43 @@ export const OrderProductList = ({ pedido, onUpdatePedido }: OrderProductListPro
   }, [pedido]);
 
   const updateQuantity = (product: MenuItem, delta: number) => {
-    const currentQuantity = detectedProducts.find(p => p.item.name === product.name)?.quantity || 0;
+    const currentProduct = detectedProducts.find(p => p.item.name === product.name);
+    const currentQuantity = currentProduct?.quantity || 0;
     const newQuantity = Math.max(0, currentQuantity + delta);
     
-    // Construir el nuevo pedido
-    let newPedido = pedido;
-    const productNameUpper = product.name.toUpperCase();
-    const pedidoUpper = pedido.toUpperCase();
+    // Separar el pedido por comas
+    const segments = pedido.split(/,\s*/);
+    let found = false;
     
-    if (newQuantity === 0) {
-      // Eliminar todas las instancias del producto
-      const regex = new RegExp(`,?\\s*${product.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s+sin\\s+[^,]*)?`, 'gi');
-      newPedido = pedido.replace(regex, '').replace(/^,\s*/, '').replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
-    } else if (delta > 0) {
-      // Añadir una instancia más
-      if (pedido.trim()) {
-        newPedido = pedido + ", " + product.name;
-      } else {
-        newPedido = product.name;
-      }
-    } else if (delta < 0) {
-      // Quitar una instancia (la primera que encuentre)
-      const index = pedidoUpper.indexOf(productNameUpper);
-      if (index !== -1) {
-        // Buscar desde el inicio hasta después del producto para eliminar comas extra
-        const before = pedido.substring(0, index);
-        const after = pedido.substring(index + product.name.length);
+    const newSegments = segments.map((segment) => {
+      const trimmed = segment.trim();
+      if (!trimmed) return null;
+      
+      // Verificar si este segmento contiene el producto
+      if (trimmed.toUpperCase().includes(product.name.toUpperCase())) {
+        found = true;
+        if (newQuantity === 0) {
+          return null; // Eliminar
+        }
+        // Extraer cualquier modificador "sin X"
+        const sinMatch = trimmed.match(/\s+(sin\s+.*)$/i);
+        const modifier = sinMatch ? sinMatch[1] : '';
         
-        // Limpiar comas y espacios extra
-        let cleanedAfter = after.replace(/^\s*,\s*/, '').replace(/^\s+/, '');
-        let cleanedBefore = before.replace(/,\s*$/, '').replace(/\s+$/, '');
-        
-        if (cleanedBefore && cleanedAfter) {
-          newPedido = cleanedBefore + ", " + cleanedAfter;
+        if (newQuantity === 1) {
+          return modifier ? `${product.name} ${modifier}` : product.name;
         } else {
-          newPedido = cleanedBefore + cleanedAfter;
+          return modifier ? `x${newQuantity} ${product.name} ${modifier}` : `x${newQuantity} ${product.name}`;
         }
       }
+      return segment;
+    }).filter(Boolean);
+    
+    // Si no se encontró y estamos añadiendo, agregar nuevo
+    if (!found && delta > 0) {
+      newSegments.push(product.name);
     }
     
-    onUpdatePedido(newPedido.trim());
+    onUpdatePedido(newSegments.join(', '));
   };
 
   if (detectedProducts.length === 0) {
