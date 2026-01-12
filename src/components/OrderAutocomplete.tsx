@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { menuData, extractIngredients, MenuItem } from "@/data/menuData";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface OrderAutocompleteProps {
@@ -20,11 +21,13 @@ export const OrderAutocomplete = ({
   name,
 }: OrderAutocompleteProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showProductMenu, setShowProductMenu] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<{ label: string; type: "product" | "ingredient"; item?: MenuItem }[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const productMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -36,6 +39,12 @@ export const OrderAutocomplete = ({
       ) {
         setShowSuggestions(false);
         setIsFocused(false);
+      }
+      if (
+        productMenuRef.current &&
+        !productMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowProductMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -136,31 +145,89 @@ export const OrderAutocomplete = ({
     inputRef.current?.focus();
   };
 
+  const handleAddProduct = (item: MenuItem) => {
+    const separator = value.trim() ? ", " : "";
+    onChange(value + separator + "x1 " + item.name);
+    setShowProductMenu(false);
+    inputRef.current?.focus();
+  };
+
+  // Group products by category
+  const groupedProducts = menuData.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {} as Record<string, MenuItem[]>);
+
   return (
     <div className="relative">
-      <textarea
-        ref={inputRef}
-        id={id}
-        name={name}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => {
-          setIsFocused(true);
-          if (value.length > 0 && suggestions.length > 0) {
-            setShowSuggestions(true);
-          }
-        }}
-        onBlur={() => {
-          // Delay to allow click on suggestions
-          setTimeout(() => setIsFocused(false), 150);
-        }}
-        placeholder={placeholder}
-        className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className
-        )}
-        rows={3}
-      />
+      <div className="relative">
+        <textarea
+          ref={inputRef}
+          id={id}
+          name={name}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => {
+            setIsFocused(true);
+            if (value.length > 0 && suggestions.length > 0) {
+              setShowSuggestions(true);
+            }
+          }}
+          onBlur={() => {
+            // Delay to allow click on suggestions
+            setTimeout(() => setIsFocused(false), 150);
+          }}
+          placeholder={placeholder}
+          className={cn(
+            "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 pr-12 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+            className
+          )}
+          rows={3}
+        />
+        
+        {/* Add product button */}
+        <button
+          type="button"
+          onClick={() => setShowProductMenu(!showProductMenu)}
+          className="absolute right-2 top-2 p-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+          title="Añadir producto"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Product menu dropdown */}
+      {showProductMenu && (
+        <div
+          ref={productMenuRef}
+          className="absolute z-50 top-full right-0 mt-1 w-72 bg-popover border border-border rounded-md shadow-lg max-h-80 overflow-y-auto"
+        >
+          <div className="p-2 border-b border-border">
+            <span className="text-sm font-medium text-foreground">Añadir producto</span>
+          </div>
+          {Object.entries(groupedProducts).map(([category, items]) => (
+            <div key={category}>
+              <div className="px-3 py-1.5 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                {category}
+              </div>
+              {items.map((item, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleAddProduct(item)}
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between gap-2"
+                >
+                  <span className="font-medium">{item.name}</span>
+                  <span className="text-xs text-muted-foreground">{item.price}</span>
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
       
       {showSuggestions && suggestions.length > 0 && (
         <div
