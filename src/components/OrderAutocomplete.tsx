@@ -78,14 +78,17 @@ export const OrderAutocomplete = ({
     // Check if user is typing "sin" anywhere in the last segment
     const sinMatch = lastSegment.match(/sin\s*(\w*)$/i);
     
-    if (sinMatch) {
+    // Check if user just typed " sin" (with space before) - show ingredients immediately
+    const justTypedSin = /\s+sin\s*$/i.test(lastSegment);
+    
+    if (sinMatch || justTypedSin) {
       // User is typing "sin..." - show ingredients from the product in this segment
-      const searchTerm = sinMatch[1].toLowerCase();
+      const searchTerm = sinMatch ? sinMatch[1].toLowerCase() : "";
       
       // Find the product mentioned before "sin" in this segment
-      const beforeSin = lastSegment.replace(/sin\s*\w*$/i, "").trim();
+      const beforeSin = lastSegment.replace(/\s*sin\s*\w*$/i, "").trim();
       const detectedProduct = menuData.find(item => 
-        beforeSin.includes(item.name.toLowerCase())
+        beforeSin.toUpperCase().includes(item.name.toUpperCase())
       );
       
       let ingredients: string[] = [];
@@ -145,15 +148,8 @@ export const OrderAutocomplete = ({
     const separator = prefix ? " + " : "";
     
     if (suggestion.type === "product" && suggestion.item) {
-      // Keep any quantity/prefix words before replacing with product name
-      const lastSegment = segments[segments.length - 1];
-      const words = lastSegment.trim().split(/\s+/);
-      // Keep words that look like quantities (numbers, "un", "una", "dos", etc.)
-      const quantityWords = words.filter(w => 
-        /^\d+$/.test(w) || ["un", "una", "uno", "dos", "tres", "cuatro", "cinco"].includes(w.toLowerCase())
-      );
-      const quantityPrefix = quantityWords.length > 0 ? quantityWords.join(" ") + " " : "";
-      onChange(prefix + separator + quantityPrefix + suggestion.item.name);
+      // Always add x1 prefix when selecting a product
+      onChange(prefix + separator + "x1 " + suggestion.item.name);
       setSelectedProduct(suggestion.item);
     } else if (suggestion.type === "ingredient") {
       // Replace "sin X" with the full ingredient
