@@ -61,7 +61,7 @@ export const OrderForm = () => {
     if (!formData.pedido) return 0;
     
     let totalPrice = 0;
-    const segments = formData.pedido.split(/,\s*/);
+    const segments = formData.pedido.split(/\s*\+\s*/);
     
     segments.forEach((segment) => {
       const trimmed = segment.trim();

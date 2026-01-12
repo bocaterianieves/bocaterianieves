@@ -20,8 +20,8 @@ export const OrderProductList = ({ pedido, onUpdatePedido }: OrderProductListPro
     
     const products: DetectedProduct[] = [];
     
-    // Separar por comas
-    const segments = pedido.split(/,\s*/);
+    // Separar por " + "
+    const segments = pedido.split(/\s*\+\s*/);
     
     segments.forEach((segment) => {
       const trimmed = segment.trim();
@@ -56,8 +56,8 @@ export const OrderProductList = ({ pedido, onUpdatePedido }: OrderProductListPro
     const currentQuantity = currentProduct?.quantity || 0;
     const newQuantity = Math.max(0, currentQuantity + delta);
     
-    // Separar el pedido por comas
-    const segments = pedido.split(/,\s*/);
+    // Separar el pedido por " + "
+    const segments = pedido.split(/\s*\+\s*/);
     let found = false;
     
     const newSegments = segments.map((segment) => {
@@ -88,7 +88,7 @@ export const OrderProductList = ({ pedido, onUpdatePedido }: OrderProductListPro
       newSegments.push(product.name);
     }
     
-    onUpdatePedido(newSegments.join(', '));
+    onUpdatePedido(newSegments.join(' + '));
   };
 
   if (detectedProducts.length === 0) {

@@ -54,9 +54,26 @@ export const OrderAutocomplete = ({
   useEffect(() => {
     const lowerValue = value.toLowerCase();
     
-    // Get the last segment after "," or " y " (for multiple products)
-    const segments = lowerValue.split(/,\s*|\s+y\s+/);
+    // Get the last segment after " + " (for multiple products)
+    const segments = lowerValue.split(/\s*\+\s*/);
     const lastSegment = segments[segments.length - 1].trim();
+    
+    // Check if user just typed a separator - show all products
+    const endsWithSeparator = /[,]\s*$/.test(value) || /\s+y\s*$/i.test(value);
+    
+    if (endsWithSeparator) {
+      // Show all products when user types "," or " y "
+      const allProducts = menuData
+        .slice(0, 8)
+        .map(item => ({ 
+          label: `${item.name} - ${item.price}`, 
+          type: "product" as const,
+          item 
+        }));
+      setSuggestions(allProducts);
+      setShowSuggestions(isFocused && allProducts.length > 0);
+      return;
+    }
     
     // Check if user is typing "sin" anywhere in the last segment
     const sinMatch = lastSegment.match(/sin\s*(\w*)$/i);
@@ -119,10 +136,13 @@ export const OrderAutocomplete = ({
   }, [value, selectedProduct, isFocused]);
 
   const handleSelect = (suggestion: { label: string; type: "product" | "ingredient"; item?: MenuItem }) => {
+    // Replace any trailing "," or " y " with " + " first
+    let cleanedValue = value.replace(/,\s*$/, " + ").replace(/\s+y\s*$/i, " + ");
+    
     // Get the part before the last segment
-    const segments = value.split(/,\s*|\s+y\s+/);
-    const prefix = segments.slice(0, -1).join(", ");
-    const separator = prefix ? ", " : "";
+    const segments = cleanedValue.split(/\s*\+\s*/);
+    const prefix = segments.slice(0, -1).join(" + ");
+    const separator = prefix ? " + " : "";
     
     if (suggestion.type === "product" && suggestion.item) {
       // Keep any quantity/prefix words before replacing with product name
@@ -146,7 +166,7 @@ export const OrderAutocomplete = ({
   };
 
   const handleAddProduct = (item: MenuItem) => {
-    const separator = value.trim() ? ", " : "";
+    const separator = value.trim() ? " + " : "";
     onChange(value + separator + "x1 " + item.name);
     setShowProductMenu(false);
     inputRef.current?.focus();
