@@ -51,11 +51,19 @@ export const OrderAutocomplete = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Normalize separators: convert "," and " y " to " + "
+  const normalizeSeparators = (text: string): string => {
+    return text
+      .replace(/\s*,\s*/g, " + ")
+      .replace(/\s+y\s+/gi, " + ");
+  };
+
   useEffect(() => {
-    const lowerValue = value.toLowerCase();
+    // Normalize the value for parsing (treat , and " y " as +)
+    const normalizedValue = normalizeSeparators(value.toLowerCase());
     
-    // Get the last segment after " + " (for multiple products)
-    const segments = lowerValue.split(/\s*\+\s*/);
+    // Get the last segment after any separator
+    const segments = normalizedValue.split(/\s*\+\s*/);
     const lastSegment = segments[segments.length - 1].trim();
     
     // Check if user is typing "sin" - show ingredients
@@ -122,8 +130,11 @@ export const OrderAutocomplete = ({
   }, [value, selectedProduct, isFocused]);
 
   const handleSelect = (suggestion: { label: string; type: "product" | "ingredient"; item?: MenuItem }) => {
+    // Normalize the value first (convert , and " y " to +)
+    const normalizedValue = normalizeSeparators(value);
+    
     // Get completed products (all segments except the last one being typed)
-    const segments = value.split(/\s*\+\s*/);
+    const segments = normalizedValue.split(/\s*\+\s*/);
     const completedProducts = segments.slice(0, -1).filter(s => s.trim());
     const prefix = completedProducts.join(" + ");
     const separator = prefix ? " + " : "";
