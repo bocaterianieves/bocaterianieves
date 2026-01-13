@@ -58,34 +58,12 @@ export const OrderAutocomplete = ({
     const segments = lowerValue.split(/\s*\+\s*/);
     const lastSegment = segments[segments.length - 1].trim();
     
-    // Check if user just typed a separator - show all products
-    const endsWithSeparator = /[,]\s*$/.test(value) || /\s+y\s*$/i.test(value);
-    
-    if (endsWithSeparator) {
-      // Show all products when user types "," or " y "
-      const allProducts = menuData
-        .slice(0, 8)
-        .map(item => ({ 
-          label: `${item.name} - ${item.price}`, 
-          type: "product" as const,
-          item 
-        }));
-      setSuggestions(allProducts);
-      setShowSuggestions(isFocused && allProducts.length > 0);
-      return;
-    }
-    
-    // Check if user is typing "sin" anywhere in the last segment
+    // Check if user is typing "sin" - show ingredients
     const sinMatch = lastSegment.match(/sin\s*(\w*)$/i);
-    
-    // Check if user just typed " sin" (with space before) - show ingredients immediately
     const justTypedSin = /\s+sin\s*$/i.test(lastSegment);
     
     if (sinMatch || justTypedSin) {
-      // User is typing "sin..." - show ingredients from the product in this segment
       const searchTerm = sinMatch ? sinMatch[1].toLowerCase() : "";
-      
-      // Find the product mentioned before "sin" in this segment
       const beforeSin = lastSegment.replace(/\s*sin\s*\w*$/i, "").trim();
       const detectedProduct = menuData.find(item => 
         beforeSin.toUpperCase().includes(item.name.toUpperCase())
@@ -107,57 +85,55 @@ export const OrderAutocomplete = ({
       
       setSuggestions(filtered);
       setShowSuggestions(isFocused && filtered.length > 0);
-    } else {
-      // Get the text being typed (after any quantity like x1, x2, etc.)
-      const cleanSegment = lastSegment.replace(/^x?\d*\s*/i, "").trim();
+      return;
+    }
+    
+    // Get clean text being typed (remove quantity prefix like x1, x2)
+    const cleanSegment = lastSegment.replace(/^x?\d*\s*/i, "").trim();
+    
+    // Always show product suggestions when typing something
+    if (cleanSegment.length > 0) {
+      const filtered = menuData
+        .filter(item => {
+          const itemNameLower = item.name.toLowerCase();
+          const searchTerm = cleanSegment.toLowerCase();
+          return itemNameLower.startsWith(searchTerm) ||
+            itemNameLower.includes(searchTerm);
+        })
+        .sort((a, b) => {
+          const searchTerm = cleanSegment.toLowerCase();
+          const aStarts = a.name.toLowerCase().startsWith(searchTerm) ? 0 : 1;
+          const bStarts = b.name.toLowerCase().startsWith(searchTerm) ? 0 : 1;
+          return aStarts - bStarts;
+        })
+        .slice(0, 8)
+        .map(item => ({ 
+          label: `${item.name} - ${item.price}`, 
+          type: "product" as const,
+          item 
+        }));
       
-      if (cleanSegment.length > 0) {
-        // Search for products matching what user is typing
-        const filtered = menuData
-          .filter(item => {
-            const itemNameLower = item.name.toLowerCase();
-            const searchTerm = cleanSegment.toLowerCase();
-            return itemNameLower.startsWith(searchTerm) ||
-              itemNameLower.includes(searchTerm) ||
-              searchTerm.includes(itemNameLower.substring(0, Math.min(3, itemNameLower.length)));
-          })
-          .sort((a, b) => {
-            const searchTerm = cleanSegment.toLowerCase();
-            const aStarts = a.name.toLowerCase().startsWith(searchTerm) ? 0 : 1;
-            const bStarts = b.name.toLowerCase().startsWith(searchTerm) ? 0 : 1;
-            return aStarts - bStarts;
-          })
-          .slice(0, 8)
-          .map(item => ({ 
-            label: `${item.name} - ${item.price}`, 
-            type: "product" as const,
-            item 
-          }));
-        
-        setSuggestions(filtered);
-        setShowSuggestions(isFocused && filtered.length > 0);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
+      setSuggestions(filtered);
+      setShowSuggestions(isFocused && filtered.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
   }, [value, selectedProduct, isFocused]);
 
   const handleSelect = (suggestion: { label: string; type: "product" | "ingredient"; item?: MenuItem }) => {
-    // Replace any trailing "," or " y " with " + " first
-    let cleanedValue = value.replace(/,\s*$/, " + ").replace(/\s+y\s*$/i, " + ");
-    
-    // Get the part before the last segment
-    const segments = cleanedValue.split(/\s*\+\s*/);
-    const prefix = segments.slice(0, -1).join(" + ");
+    // Get completed products (all segments except the last one being typed)
+    const segments = value.split(/\s*\+\s*/);
+    const completedProducts = segments.slice(0, -1).filter(s => s.trim());
+    const prefix = completedProducts.join(" + ");
     const separator = prefix ? " + " : "";
     
     if (suggestion.type === "product" && suggestion.item) {
-      // Always add x1 prefix when selecting a product
+      // Add x1 prefix when selecting a product
       onChange(prefix + separator + "x1 " + suggestion.item.name);
       setSelectedProduct(suggestion.item);
     } else if (suggestion.type === "ingredient") {
-      // Replace "sin X" with the full ingredient
+      // Keep the last segment but replace "sin X" with full ingredient
       const lastSegment = segments[segments.length - 1];
       const newLastSegment = lastSegment.replace(/sin\s*\w*$/i, `sin ${suggestion.label}`);
       onChange(prefix + separator + newLastSegment);
