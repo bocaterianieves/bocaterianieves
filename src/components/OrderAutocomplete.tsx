@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { menuData, extractIngredients, MenuItem } from "@/data/menuData";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,60 @@ interface OrderAutocompleteProps {
   id?: string;
   name?: string;
 }
+
+// Normalize text for comparison (remove accents, lowercase)
+const normalizeText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remove accents
+    .replace(/[^a-z0-9\s]/g, ""); // Keep only letters, numbers, spaces
+};
+
+// Check if a text matches a product name (fuzzy match)
+const matchesProduct = (text: string, productName: string): boolean => {
+  const normalizedText = normalizeText(text);
+  const normalizedProduct = normalizeText(productName);
+  
+  // Exact match
+  if (normalizedText === normalizedProduct) return true;
+  
+  // Text contains the product name
+  if (normalizedText.includes(normalizedProduct)) return true;
+  
+  // Product name contains the text (for partial matches)
+  if (normalizedProduct.includes(normalizedText) && normalizedText.length >= 3) return true;
+  
+  // Check word by word for multi-word products
+  const textWords = normalizedText.split(/\s+/);
+  const productWords = normalizedProduct.split(/\s+/);
+  
+  // All words from text should match words in product
+  return textWords.every(tw => 
+    productWords.some(pw => pw.includes(tw) || tw.includes(pw))
+  );
+};
+
+// Find the best matching product for a text segment
+const findMatchingProduct = (text: string): MenuItem | null => {
+  const normalizedText = normalizeText(text);
+  if (normalizedText.length < 2) return null;
+  
+  // First try exact matches
+  for (const item of menuData) {
+    if (normalizeText(item.name) === normalizedText) {
+      return item;
+    }
+  }
+  
+  // Then try partial matches, prioritizing longer matches
+  const matches = menuData.filter(item => matchesProduct(text, item.name));
+  
+  if (matches.length === 0) return null;
+  
+  // Return the best match (prefer longer product names as they're more specific)
+  return matches.sort((a, b) => b.name.length - a.name.length)[0];
+};
 
 export const OrderAutocomplete = ({
   value,
@@ -28,6 +82,7 @@ export const OrderAutocomplete = ({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const productMenuRef = useRef<HTMLDivElement>(null);
+  const lastNormalizedValue = useRef<string>("");
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -51,38 +106,92 @@ export const OrderAutocomplete = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Normalize separators: convert "," and " y " to " + "
-  const normalizeSeparators = (text: string): string => {
-    return text
-      .replace(/\s*,\s*/g, " + ")
-      .replace(/\s+y\s+/gi, " + ");
-  };
-
-  useEffect(() => {
-    // Normalize the value for parsing (treat , and " y " as +)
-    const normalizedValue = normalizeSeparators(value.toLowerCase());
+  // Normalize and detect products when value changes
+  const normalizeOrder = useCallback((text: string): string => {
+    // Split by common separators: +, comma, "y", newlines
+    const segments = text.split(/\s*[+,]\s*|\s+y\s+|\n/gi);
     
-    // Get the last segment after any separator
-    const segments = normalizedValue.split(/\s*\+\s*/);
+    const normalizedSegments: string[] = [];
+    
+    for (const segment of segments) {
+      const trimmed = segment.trim();
+      if (!trimmed) continue;
+      
+      // Check for quantity prefix (x1, x2, 2x, etc.)
+      const quantityMatch = trimmed.match(/^x?(\d+)\s*x?\s*/i);
+      let quantity = 1;
+      let productText = trimmed;
+      
+      if (quantityMatch) {
+        quantity = parseInt(quantityMatch[1]);
+        productText = trimmed.replace(/^x?\d+\s*x?\s*/i, "").trim();
+      }
+      
+      // Check for "sin" modifier
+      const sinMatch = productText.match(/\s+sin\s+(.+)$/i);
+      let sinModifier = "";
+      let mainProductText = productText;
+      
+      if (sinMatch) {
+        sinModifier = ` sin ${sinMatch[1].toLowerCase()}`;
+        mainProductText = productText.replace(/\s+sin\s+.+$/i, "").trim();
+      }
+      
+      // Find matching product
+      const matchedProduct = findMatchingProduct(mainProductText);
+      
+      if (matchedProduct) {
+        // Format with quantity prefix
+        const quantityPrefix = quantity > 1 ? `x${quantity} ` : "x1 ";
+        normalizedSegments.push(quantityPrefix + matchedProduct.name + sinModifier);
+      } else if (trimmed) {
+        // Keep original text if no match
+        normalizedSegments.push(trimmed);
+      }
+    }
+    
+    return normalizedSegments.join(" + ");
+  }, []);
+
+  // Auto-normalize on blur (when user finishes typing)
+  const handleBlur = useCallback(() => {
+    setTimeout(() => {
+      setIsFocused(false);
+      
+      // Normalize the order when user stops editing
+      if (value.trim()) {
+        const normalized = normalizeOrder(value);
+        if (normalized !== value && normalized !== lastNormalizedValue.current) {
+          lastNormalizedValue.current = normalized;
+          onChange(normalized);
+        }
+      }
+    }, 200);
+  }, [value, normalizeOrder, onChange]);
+
+  // Show ingredient suggestions when typing "sin"
+  useEffect(() => {
+    const lowerValue = value.toLowerCase();
+    
+    // Get the last segment
+    const segments = lowerValue.split(/\s*\+\s*/);
     const lastSegment = segments[segments.length - 1].trim();
     
-    // Check if user is typing "sin" - show ingredients
+    // Check if user is typing "sin"
     const sinMatch = lastSegment.match(/sin\s*(\w*)$/i);
-    const justTypedSin = /\s+sin\s*$/i.test(lastSegment);
     
-    if (sinMatch || justTypedSin) {
-      const searchTerm = sinMatch ? sinMatch[1].toLowerCase() : "";
+    if (sinMatch) {
+      const searchTerm = sinMatch[1].toLowerCase();
       const beforeSin = lastSegment.replace(/\s*sin\s*\w*$/i, "").trim();
       const detectedProduct = menuData.find(item => 
-        beforeSin.toUpperCase().includes(item.name.toUpperCase())
+        normalizeText(beforeSin).includes(normalizeText(item.name)) ||
+        normalizeText(item.name).includes(normalizeText(beforeSin))
       );
       
       let ingredients: string[] = [];
       if (detectedProduct) {
         ingredients = extractIngredients(detectedProduct.description);
-        if (detectedProduct !== selectedProduct) {
-          setSelectedProduct(detectedProduct);
-        }
+        setSelectedProduct(detectedProduct);
       } else if (selectedProduct) {
         ingredients = extractIngredients(selectedProduct.description);
       }
@@ -93,36 +202,6 @@ export const OrderAutocomplete = ({
       
       setSuggestions(filtered);
       setShowSuggestions(isFocused && filtered.length > 0);
-      return;
-    }
-    
-    // Get clean text being typed (remove quantity prefix like x1, x2)
-    const cleanSegment = lastSegment.replace(/^x?\d*\s*/i, "").trim();
-    
-    // Always show product suggestions when typing something
-    if (cleanSegment.length > 0) {
-      const filtered = menuData
-        .filter(item => {
-          const itemNameLower = item.name.toLowerCase();
-          const searchTerm = cleanSegment.toLowerCase();
-          return itemNameLower.startsWith(searchTerm) ||
-            itemNameLower.includes(searchTerm);
-        })
-        .sort((a, b) => {
-          const searchTerm = cleanSegment.toLowerCase();
-          const aStarts = a.name.toLowerCase().startsWith(searchTerm) ? 0 : 1;
-          const bStarts = b.name.toLowerCase().startsWith(searchTerm) ? 0 : 1;
-          return aStarts - bStarts;
-        })
-        .slice(0, 8)
-        .map(item => ({ 
-          label: `${item.name} - ${item.price}`, 
-          type: "product" as const,
-          item 
-        }));
-      
-      setSuggestions(filtered);
-      setShowSuggestions(isFocused && filtered.length > 0);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -130,23 +209,13 @@ export const OrderAutocomplete = ({
   }, [value, selectedProduct, isFocused]);
 
   const handleSelect = (suggestion: { label: string; type: "product" | "ingredient"; item?: MenuItem }) => {
-    // Normalize the value first (convert , and " y " to +)
-    const normalizedValue = normalizeSeparators(value);
-    
-    // Get completed products (all segments except the last one being typed)
-    const segments = normalizedValue.split(/\s*\+\s*/);
-    const completedProducts = segments.slice(0, -1).filter(s => s.trim());
-    const prefix = completedProducts.join(" + ");
-    const separator = prefix ? " + " : "";
-    
-    if (suggestion.type === "product" && suggestion.item) {
-      // Add x1 prefix when selecting a product
-      onChange(prefix + separator + "x1 " + suggestion.item.name);
-      setSelectedProduct(suggestion.item);
-    } else if (suggestion.type === "ingredient") {
-      // Keep the last segment but replace "sin X" with full ingredient
+    if (suggestion.type === "ingredient") {
+      // Replace "sin X" with full ingredient
+      const segments = value.split(/\s*\+\s*/);
       const lastSegment = segments[segments.length - 1];
       const newLastSegment = lastSegment.replace(/sin\s*\w*$/i, `sin ${suggestion.label}`);
+      const prefix = segments.slice(0, -1).join(" + ");
+      const separator = prefix ? " + " : "";
       onChange(prefix + separator + newLastSegment);
     }
     setShowSuggestions(false);
@@ -180,14 +249,8 @@ export const OrderAutocomplete = ({
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => {
             setIsFocused(true);
-            if (value.length > 0 && suggestions.length > 0) {
-              setShowSuggestions(true);
-            }
           }}
-          onBlur={() => {
-            // Delay to allow click on suggestions
-            setTimeout(() => setIsFocused(false), 150);
-          }}
+          onBlur={handleBlur}
           placeholder={placeholder}
           className={cn(
             "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 pr-12 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
@@ -252,14 +315,7 @@ export const OrderAutocomplete = ({
               {suggestion.type === "ingredient" && (
                 <span className="text-xs text-muted-foreground">sin</span>
               )}
-              <span className={suggestion.type === "product" ? "font-medium" : ""}>
-                {suggestion.label}
-              </span>
-              {suggestion.type === "product" && suggestion.item?.description && (
-                <span className="text-xs text-muted-foreground ml-auto truncate max-w-[200px]">
-                  {suggestion.item.description}
-                </span>
-              )}
+              <span>{suggestion.label}</span>
             </button>
           ))}
         </div>
