@@ -107,34 +107,39 @@ export const OrderAutocomplete = ({
       
       setSuggestions(filtered);
       setShowSuggestions(isFocused && filtered.length > 0);
-    } else if (lastSegment.length > 0) {
-      const words = lastSegment.split(/\s+/);
-      const lastWord = words[words.length - 1];
-      
-      const filtered = menuData
-        .filter(item => {
-          const itemNameLower = item.name.toLowerCase();
-          return itemNameLower.startsWith(lastWord) ||
-            itemNameLower.includes(lastWord) ||
-            lastWord.includes(itemNameLower.substring(0, Math.min(3, itemNameLower.length)));
-        })
-        .sort((a, b) => {
-          const aStarts = a.name.toLowerCase().startsWith(lastWord) ? 0 : 1;
-          const bStarts = b.name.toLowerCase().startsWith(lastWord) ? 0 : 1;
-          return aStarts - bStarts;
-        })
-        .slice(0, 8)
-        .map(item => ({ 
-          label: `${item.name} - ${item.price}`, 
-          type: "product" as const,
-          item 
-        }));
-      
-      setSuggestions(filtered);
-      setShowSuggestions(isFocused && filtered.length > 0);
     } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
+      // Get the text being typed (after any quantity like x1, x2, etc.)
+      const cleanSegment = lastSegment.replace(/^x?\d*\s*/i, "").trim();
+      
+      if (cleanSegment.length > 0) {
+        // Search for products matching what user is typing
+        const filtered = menuData
+          .filter(item => {
+            const itemNameLower = item.name.toLowerCase();
+            const searchTerm = cleanSegment.toLowerCase();
+            return itemNameLower.startsWith(searchTerm) ||
+              itemNameLower.includes(searchTerm) ||
+              searchTerm.includes(itemNameLower.substring(0, Math.min(3, itemNameLower.length)));
+          })
+          .sort((a, b) => {
+            const searchTerm = cleanSegment.toLowerCase();
+            const aStarts = a.name.toLowerCase().startsWith(searchTerm) ? 0 : 1;
+            const bStarts = b.name.toLowerCase().startsWith(searchTerm) ? 0 : 1;
+            return aStarts - bStarts;
+          })
+          .slice(0, 8)
+          .map(item => ({ 
+            label: `${item.name} - ${item.price}`, 
+            type: "product" as const,
+            item 
+          }));
+        
+        setSuggestions(filtered);
+        setShowSuggestions(isFocused && filtered.length > 0);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
     }
   }, [value, selectedProduct, isFocused]);
 
