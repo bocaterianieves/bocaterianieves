@@ -76,7 +76,7 @@ export const OrderProductList = ({ pedido, onUpdatePedido }: OrderProductListPro
 
   const rebuildPedido = (products: DetectedProduct[]): string => {
     return products.map(p => {
-      const qtyPrefix = p.quantity > 1 ? `x${p.quantity} ` : "";
+      const qtyPrefix = `x${p.quantity} `;
       const sinPart = p.excludedIngredients.length > 0 
         ? ` sin ${p.excludedIngredients.join(", ")}` 
         : "";
