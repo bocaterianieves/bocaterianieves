@@ -20,16 +20,22 @@ export const Header = () => {
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, link: typeof navLinks[0]) => {
     if (link.scrollTo) {
       e.preventDefault();
-      // If we're not on the home page, navigate there first
       const currentHash = window.location.hash;
-      if (currentHash !== "#/" && !currentHash.startsWith("#/?")) {
-        window.location.hash = "#/";
-        // Wait for navigation then scroll
-        setTimeout(() => {
+      const isHome = currentHash === "#/" || currentHash === "" || currentHash.startsWith("#/?");
+
+      const scroll = () => {
+        if (link.scrollTo === "inicio") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
           document.getElementById(link.scrollTo!)?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
+        }
+      };
+
+      if (!isHome) {
+        window.location.hash = "#/";
+        setTimeout(scroll, 100);
       } else {
-        document.getElementById(link.scrollTo)?.scrollIntoView({ behavior: "smooth" });
+        scroll();
       }
       setOpen(false);
     }
