@@ -91,7 +91,7 @@ export const Hero = () => {
 
             <div className="animate-slide-up opacity-0 relative group" style={{ animationFillMode: "forwards", animationDelay: "0.5s" }}>
               <div className="absolute -inset-1 bg-gradient-warm rounded-2xl blur opacity-30 group-hover:opacity-75 transition duration-500"></div>
-              <a href="#pedido" className="relative inline-flex items-center justify-center gap-3 bg-card text-foreground px-10 py-5 rounded-2xl font-bold text-lg md:text-xl border border-white/5 shadow-card hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+              <a href="#/" onClick={(e) => { e.preventDefault(); document.getElementById('pedido')?.scrollIntoView({ behavior: 'smooth' }); }} className="relative inline-flex items-center justify-center gap-3 bg-card text-foreground px-10 py-5 rounded-2xl font-bold text-lg md:text-xl border border-white/5 shadow-card hover:-translate-y-1 transition-all duration-300 overflow-hidden">
                 <span className="relative z-10 flex items-center gap-2">
                   Pedir
                   <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">

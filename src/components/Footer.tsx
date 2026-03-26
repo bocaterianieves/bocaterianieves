@@ -10,6 +10,18 @@ export const Footer = () => {
           <div className="space-y-4">
             <h3 className="font-serif text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-warm drop-shadow-sm mb-4">Bocatería Nieves</h3>
             <p className="text-muted-foreground leading-relaxed max-w-sm">Desde 2008 haciendo los mejores bocadillos, hamburguesas, perritos y patatas de San Roque.</p>
+            <div className="mt-4 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+              <iframe
+                title="Ubicación Bocatería Nieves"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3133.5!2d-6.9757!3d38.8786!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd141849d2b3a6e3%3A0x0!2sAv.%20Ricardo%20Carapeto%20Zambrano%2C%2006008%20Badajoz!5e0!3m2!1ses!2ses!4v1711111111111"
+                width="100%"
+                height="200"
+                style={{ border: 0, filter: "invert(90%) hue-rotate(180deg) brightness(0.95) contrast(0.9)" }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
           </div>
 
           {/* Contact */}
