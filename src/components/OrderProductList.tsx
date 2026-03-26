@@ -56,8 +56,9 @@ export const OrderProductList = ({ pedido, onUpdatePedido }: OrderProductListPro
         });
       }
       
-      // Buscar el producto en el menú
-      const foundItem = menuData.find(item => 
+      // Buscar el producto en el menú (ordenamos por longitud descendente para evitar que 'POLLO' coincida antes que 'ENSALADA MIXTA CON POLLO')
+      const sortedMenuData = [...menuData].sort((a, b) => b.name.length - a.name.length);
+      const foundItem = sortedMenuData.find(item => 
         productName.toUpperCase().includes(item.name.toUpperCase())
       );
       

@@ -79,6 +79,7 @@ export const OrderAutocomplete = ({
   const [isFocused, setIsFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<{ label: string; type: "product" | "ingredient"; item?: MenuItem }[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<MenuItem | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const productMenuRef = useRef<HTMLDivElement>(null);
@@ -229,8 +230,11 @@ export const OrderAutocomplete = ({
     inputRef.current?.focus();
   };
 
-  // Group products by category
+  // Group products by category and filter by search term
   const groupedProducts = menuData.reduce((acc, item) => {
+    if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return acc;
+    }
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
@@ -258,7 +262,10 @@ export const OrderAutocomplete = ({
         {/* Add product button */}
         <button
           type="button"
-          onClick={() => setShowProductMenu(!showProductMenu)}
+          onClick={() => {
+            setShowProductMenu(!showProductMenu);
+            if (!showProductMenu) setSearchTerm("");
+          }}
           className="absolute right-2 top-2 p-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
           title="Añadir producto"
         >
@@ -272,9 +279,21 @@ export const OrderAutocomplete = ({
           ref={productMenuRef}
           className="absolute z-50 top-full right-0 mt-1 w-72 bg-popover border border-border rounded-md shadow-lg max-h-80 overflow-y-auto"
         >
-          <div className="p-2 border-b border-border">
-            <span className="text-sm font-medium text-foreground">Añadir producto</span>
+          <div className="p-2 border-b border-border sticky top-0 bg-popover z-10">
+            <input
+              type="text"
+              placeholder="Buscar producto..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-muted/50 border border-input rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary text-foreground placeholder:text-muted-foreground"
+              autoFocus
+            />
           </div>
+          {Object.entries(groupedProducts).length === 0 && (
+            <div className="p-4 text-sm text-muted-foreground text-center">
+              No se han encontrado productos.
+            </div>
+          )}
           {Object.entries(groupedProducts).map(([category, items]) => (
             <div key={category}>
               <div className="px-3 py-1.5 bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -287,8 +306,8 @@ export const OrderAutocomplete = ({
                   onClick={() => handleAddProduct(item)}
                   className="w-full px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors flex items-center justify-between gap-2"
                 >
-                  <span className="font-medium">{item.name}</span>
-                  <span className="text-xs text-muted-foreground">{item.price}</span>
+                   <span className="font-medium">{item.name}</span>
+                   <span className="text-xs text-muted-foreground">{item.price}</span>
                 </button>
               ))}
             </div>

@@ -12,20 +12,20 @@ export const Header = () => {
 
   const navLinks = [
     { href: "/", label: "Inicio" },
-    { href: "/#pedido", label: "Hacer Pedido" },
+    { href: "/#pedido", label: "Pedir" },
     { href: "/menu", label: "Menú" },
-    { href: "/#info", label: "Información" },
+    { href: "#info", label: "Información" },
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-4 py-4">
+    <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[96%] max-w-6xl rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
+      <div className="px-5 py-3 md:px-8 md:py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-warm p-2 rounded-xl">
-              <Sandwich className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-warm p-2.5 rounded-xl shadow-[0_0_15px_rgba(255,100,0,0.4)]">
+              <Sandwich className="w-6 h-6 text-white" />
             </div>
-            <span className="font-serif text-2xl font-bold text-foreground">Bocatería Nieves</span>
+            <span className="font-serif text-2xl font-bold text-foreground tracking-tight drop-shadow-sm">Bocatería Nieves</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -34,7 +34,7 @@ export const Header = () => {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground hover:text-primary hover:drop-shadow-[0_0_8px_rgba(255,120,0,0.6)] transition-all duration-300"
               >
                 {link.label}
               </a>
@@ -42,34 +42,34 @@ export const Header = () => {
           </nav>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="hidden lg:flex items-center gap-2 text-sm text-muted-foreground px-4 py-1.5 rounded-full bg-white/5 border border-white/5">
               <Clock className="w-4 h-4 text-primary" />
-              <span>20:00 - 24:00</span>
+              <span className="font-semibold text-foreground/90">20:00 - 24:00</span>
             </div>
 
             {/* Mobile Menu */}
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild className="md:hidden">
-                <button className="p-2 text-foreground">
+                <button className="p-2 text-foreground hover:bg-white/10 rounded-lg transition-colors">
                   <Menu className="w-6 h-6" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] bg-card">
-                <nav className="flex flex-col gap-4 mt-8">
+              <SheetContent side="right" className="w-[300px] bg-background/95 backdrop-blur-2xl border-l border-white/10">
+                <nav className="flex flex-col gap-6 mt-12">
                   {navLinks.map((link) => (
                     <a
                       key={link.href}
                       href={link.href}
                       onClick={() => setOpen(false)}
-                      className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2"
+                      className="text-2xl font-serif font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-white/5"
                     >
                       {link.label}
                     </a>
                   ))}
                 </nav>
-                <div className="mt-8 flex items-center gap-2 text-muted-foreground">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span>20:00 - 24:00</span>
+                <div className="mt-12 flex items-center gap-3 text-muted-foreground bg-white/5 p-4 rounded-xl border border-white/5">
+                  <Clock className="w-5 h-5 text-primary" />
+                  <span className="font-semibold text-foreground">20:00 - 24:00</span>
                 </div>
               </SheetContent>
             </Sheet>

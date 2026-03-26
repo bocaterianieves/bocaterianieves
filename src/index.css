@@ -34,7 +34,7 @@
     --input: 35 25% 85%;
     --ring: 32 95% 44%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Custom tokens */
     --warm-cream: 40 45% 94%;
@@ -63,37 +63,44 @@
   }
 
   .dark {
-    --background: 30 20% 10%;
-    --foreground: 40 30% 95%;
+    --background: 24 10% 8%; /* Rich deep charcoal with a hint of warm red */
+    --foreground: 40 33% 96%;
 
-    --card: 30 20% 14%;
-    --card-foreground: 40 30% 95%;
+    --card: 24 10% 12%;
+    --card-foreground: 40 33% 96%;
 
-    --popover: 30 20% 14%;
-    --popover-foreground: 40 30% 95%;
+    --popover: 24 10% 12%;
+    --popover-foreground: 40 33% 96%;
 
-    --primary: 32 95% 50%;
-    --primary-foreground: 30 20% 10%;
+    --primary: 25 90% 55%; /* Vibrant orange/amber */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 30 15% 20%;
     --secondary-foreground: 40 30% 95%;
 
-    --muted: 30 15% 20%;
-    --muted-foreground: 40 20% 65%;
+    --muted: 30 10% 20%;
+    --muted-foreground: 40 20% 70%;
 
-    --accent: 16 85% 55%;
-    --accent-foreground: 30 20% 10%;
+    --accent: 16 90% 60%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 30 15% 22%;
-    --input: 30 15% 22%;
-    --ring: 32 95% 50%;
+    --border: 30 10% 20%;
+    --input: 30 10% 20%;
+    --ring: 25 90% 55%;
 
     --warm-cream: 30 20% 18%;
     --warm-brown: 40 30% 85%;
-    --gradient-hero: linear-gradient(135deg, hsl(30, 20%, 8%) 0%, hsl(25, 25%, 5%) 100%);
+    
+    --gradient-warm: linear-gradient(135deg, hsl(25, 90%, 55%) 0%, hsl(16, 90%, 60%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(24, 10%, 10%) 0%, hsl(24, 10%, 14%) 100%);
+    --gradient-hero: linear-gradient(135deg, rgba(20, 15, 10, 0.8) 0%, rgba(10, 5, 0, 0.95) 100%);
+
+    --shadow-warm: 0 10px 40px -10px hsl(25, 90%, 55%, 0.3);
+    --shadow-soft: 0 8px 30px -4px rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 12px 40px -8px rgba(0, 0, 0, 0.6);
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -112,7 +119,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-primary transition-colors duration-300;
     font-family: 'Inter', sans-serif;
   }
 
@@ -145,5 +152,9 @@
 
   .shadow-card {
     box-shadow: var(--shadow-card);
+  }
+
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-xl border border-white/10 shadow-card;
   }
 }

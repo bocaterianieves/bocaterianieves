@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -56,6 +56,13 @@ export const OrderForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const savedPedido = localStorage.getItem("bocateria_pedido");
+    if (savedPedido) {
+      setFormData(prev => ({ ...prev, pedido: savedPedido }));
+    }
+  }, []);
+
   // Calcular el total del pedido (soporta formato "xN PRODUCTO")
   const total = useMemo(() => {
     if (!formData.pedido) return 0;
@@ -72,8 +79,9 @@ export const OrderForm = () => {
       const quantity = quantityMatch ? parseInt(quantityMatch[1]) : 1;
       const productPart = quantityMatch ? trimmed.replace(/^x\d+\s+/i, '') : trimmed;
       
-      // Buscar el producto en el menú
-      const foundItem = menuData.find(item => 
+      // Buscar el producto en el menú ordenando por longitud para que las coincidencias más largas tengan prioridad
+      const sortedMenuData = [...menuData].sort((a, b) => b.name.length - a.name.length);
+      const foundItem = sortedMenuData.find(item => 
         productPart.toUpperCase().includes(item.name.toUpperCase())
       );
       
@@ -118,25 +126,27 @@ export const OrderForm = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("send-order", {
-        body: {
-          nombre: result.data.nombre,
-          correo: result.data.correo,
-          pedido: result.data.pedido,
-          tipoPedido: result.data.tipoPedido,
-          fechaRecogida: format(result.data.fechaRecogida, "yyyy-MM-dd"),
-          horaRecogida: result.data.horaRecogida,
-          total: total.toFixed(2).replace('.', ',') + "€",
-          timestamp: new Date().toISOString(),
+      const payload = {
+        nombre: result.data.nombre,
+        correo: result.data.correo,
+        pedido: result.data.pedido,
+        tipoPedido: result.data.tipoPedido === "comer" ? "Comer Aquí" : "Para Llevar",
+        fechaRecogida: format(result.data.fechaRecogida, "yyyy-MM-dd"),
+        horaRecogida: result.data.horaRecogida,
+        total: total.toFixed(2).replace('.', ',') + "€",
+        timestamp: new Date().toISOString(),
+      };
+
+      const response = await fetch("https://websleads.app.n8n.cloud/webhook/pruebaweb", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify(payload),
       });
 
-      if (error) {
-        throw error;
-      }
-
-      if (!data?.success) {
-        throw new Error(data?.error || "El backend devolvió un error");
+      if (!response.ok) {
+        throw new Error("El backend devolvió un error al intentar procesar la petición.");
       }
 
       toast({
@@ -144,6 +154,7 @@ export const OrderForm = () => {
         description: "Hemos recibido tu pedido. Te contactaremos pronto.",
       });
 
+      localStorage.removeItem("bocateria_pedido");
       setFormData({ nombre: "", correo: "", pedido: "", tipoPedido: undefined, horaRecogida: "" });
       setFechaRecogida(undefined);
     } catch (error) {
@@ -211,6 +222,7 @@ export const OrderForm = () => {
           value={formData.pedido || ""}
           onChange={(value) => {
             setFormData((prev) => ({ ...prev, pedido: value }));
+            localStorage.setItem("bocateria_pedido", value);
             if (errors.pedido) {
               setErrors((prev) => ({ ...prev, pedido: undefined }));
             }
@@ -220,6 +232,7 @@ export const OrderForm = () => {
           pedido={formData.pedido || ""}
           onUpdatePedido={(value) => {
             setFormData((prev) => ({ ...prev, pedido: value }));
+            localStorage.setItem("bocateria_pedido", value);
             if (errors.pedido) {
               setErrors((prev) => ({ ...prev, pedido: undefined }));
             }
