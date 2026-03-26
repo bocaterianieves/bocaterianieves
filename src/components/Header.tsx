@@ -11,7 +11,7 @@ export const Header = () => {
   const [open, setOpen] = useState(false);
 
   const navLinks = [
-    { href: "#/", label: "Inicio" },
+    { href: "#/", scrollTo: "inicio", label: "Inicio" },
     { href: "#/", scrollTo: "pedido", label: "Pedir" },
     { href: "#/menu", label: "Menú" },
     { href: "#/", scrollTo: "info", label: "Información" },
