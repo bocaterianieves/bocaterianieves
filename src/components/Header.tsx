@@ -11,11 +11,29 @@ export const Header = () => {
   const [open, setOpen] = useState(false);
 
   const navLinks = [
-    { href: "/", label: "Inicio" },
-    { href: "/#pedido", label: "Pedir" },
-    { href: "/menu", label: "Menú" },
-    { href: "#info", label: "Información" },
+    { href: "#/", label: "Inicio" },
+    { href: "#/", scrollTo: "pedido", label: "Pedir" },
+    { href: "#/menu", label: "Menú" },
+    { href: "#/", scrollTo: "info", label: "Información" },
   ];
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, link: typeof navLinks[0]) => {
+    if (link.scrollTo) {
+      e.preventDefault();
+      // If we're not on the home page, navigate there first
+      const currentHash = window.location.hash;
+      if (currentHash !== "#/" && !currentHash.startsWith("#/?")) {
+        window.location.hash = "#/";
+        // Wait for navigation then scroll
+        setTimeout(() => {
+          document.getElementById(link.scrollTo!)?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else {
+        document.getElementById(link.scrollTo)?.scrollIntoView({ behavior: "smooth" });
+      }
+      setOpen(false);
+    }
+  };
 
   return (
     <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[96%] max-w-6xl rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
@@ -32,8 +50,9 @@ export const Header = () => {
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
             {navLinks.map((link) => (
               <a
-                key={link.href}
+                key={link.label}
                 href={link.href}
+                onClick={(e) => handleNavClick(e, link)}
                 className="text-muted-foreground hover:text-primary hover:drop-shadow-[0_0_8px_rgba(255,120,0,0.6)] transition-all duration-300"
               >
                 {link.label}
@@ -58,9 +77,9 @@ export const Header = () => {
                 <nav className="flex flex-col gap-6 mt-12">
                   {navLinks.map((link) => (
                     <a
-                      key={link.href}
+                      key={link.label}
                       href={link.href}
-                      onClick={() => setOpen(false)}
+                      onClick={(e) => handleNavClick(e, link)}
                       className="text-2xl font-serif font-medium text-foreground hover:text-primary transition-colors py-2 border-b border-white/5"
                     >
                       {link.label}
